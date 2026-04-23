@@ -117,7 +117,7 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;color:var(--gra
 .pill-green{background:rgba(26,122,69,.1);color:var(--green);}
 .pill-blue{background:rgba(13,34,71,.1);color:var(--navy);}
 .pill-gray{background:var(--gray-100);color:var(--gray-500);}
-.pill-amber{background:rgba(200,169,74,.15);color:#8a6c00;}
+
 .btn-row{display:flex;gap:8px;margin-bottom:16px;}
 .btn-sm{padding:6px 14px;font-size:12px;font-weight:600;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:inherit;transition:all .18s;}
 .btn-primary{background:var(--navy);color:white;}.btn-primary:hover{background:var(--navy-mid);}
@@ -386,6 +386,7 @@ const MCC_ADDR1 = '30 Ramland Road - Suite 103';
 const MCC_ADDR2 = 'Orangeburg, NY 10962';
 const MCC_PHONE = '(845) 268-0300';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImticWt3bGhta3Z3bnV0cWtjc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDY0ODUsImV4cCI6MjA5MTY4MjQ4NX0.Fxhi8kP391JBOMNuQvRpT7p4ssf-z5oxv-ooslrsEj4';
+const escHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // State
 const H = {sageFile:null,parsed:null,g1:[],g2:[],bytes:null};
@@ -824,10 +825,6 @@ async function genHHCInvoice() {
   const fR=await doc.embedFont(StandardFonts.Helvetica);
   const fB=await doc.embedFont(StandardFonts.HelveticaBold);
 
-  const logoArr=Uint8Array.from(atob(LOGO_URL.split(',')[1]),c=>c.charCodeAt(0));
-  const logoImg=await doc.embedPng(logoArr);
-  const lD=logoImg.scale(0.28);
-
   const navy=rgb(0.05,0.13,0.28),gray=rgb(0.65,0.65,0.65),lgray=rgb(0.88,0.88,0.88),blk=rgb(0,0,0),wht=rgb(1,1,1);
 
   const invNo=document.getElementById('hhc-invno').value;
@@ -1080,36 +1077,36 @@ async function mergePDFs(genArr,fileArr) {
 // Admin Tables
 function renderAllTables(){
   document.querySelector('#tbl-loc tbody').innerHTML=AD.locs.map(l=>`<tr>
-    <td><strong>${l.name}</strong></td><td>${l.num_technicians}</td>
-    <td><span class="pill ${l.customer_type==='HHC'?'pill-blue':'pill-green'}">${l.customer_type}</span></td>
+    <td><strong>${escHtml(l.name)}</strong></td><td>${escHtml(l.num_technicians)}</td>
+    <td><span class="pill ${l.customer_type==='HHC'?'pill-blue':'pill-green'}">${escHtml(l.customer_type)}</span></td>
     <td><span class="pill ${l.active?'pill-green':'pill-gray'}">${l.active?'Active':'Inactive'}</span></td>
-    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('location','${l.id}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('location','${l.id}')">Delete</button></td>
+    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('location','${escHtml(l.id)}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('location','${escHtml(l.id)}')">Delete</button></td>
   </tr>`).join('');
 
   document.querySelector('#tbl-bt tbody').innerHTML=AD.bts.map(b=>`<tr>
-    <td><strong>${b.company_name}</strong></td>
-    <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px">${b.customer_id||'--'}</code></td>
-    <td style="font-size:12px;color:var(--gray-500)">${[b.address_line1,b.address_line2,b.city_state_zip].filter(Boolean).join(', ')}</td>
-    <td><span class="pill pill-blue">${b.customer_type}</span></td>
+    <td><strong>${escHtml(b.company_name)}</strong></td>
+    <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px">${escHtml(b.customer_id||'--')}</code></td>
+    <td style="font-size:12px;color:var(--gray-500)">${[b.address_line1,b.address_line2,b.city_state_zip].filter(Boolean).map(escHtml).join(', ')}</td>
+    <td><span class="pill pill-blue">${escHtml(b.customer_type)}</span></td>
     <td><span class="pill ${b.active?'pill-green':'pill-gray'}">${b.active?'Active':'Inactive'}</span></td>
-    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('billto','${b.id}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('billto','${b.id}')">Delete</button></td>
+    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('billto','${escHtml(b.id)}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('billto','${escHtml(b.id)}')">Delete</button></td>
   </tr>`).join('');
 
   document.querySelector('#tbl-po tbody').innerHTML=AD.pos.map(p=>{
     const bt=AD.bts.find(b=>b.id===p.bill_to_id)||{company_name:'--'};
     return`<tr>
-      <td style="font-size:12px">${bt.company_name}</td>
-      <td><strong>${p.po_number}</strong></td>
-      <td style="font-size:12px">${p.effective_date}</td>
+      <td style="font-size:12px">${escHtml(bt.company_name)}</td>
+      <td><strong>${escHtml(p.po_number)}</strong></td>
+      <td style="font-size:12px">${escHtml(p.effective_date)}</td>
       <td>${p.is_current?'<span class="pill pill-green">Current</span>':'<span class="pill pill-gray">History</span>'}</td>
-      <td style="font-size:12px;color:var(--gray-500)">${p.notes||''}</td>
-      <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('po','${p.id}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('po','${p.id}')">Delete</button></td>
+      <td style="font-size:12px;color:var(--gray-500)">${escHtml(p.notes||'')}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('po','${escHtml(p.id)}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('po','${escHtml(p.id)}')">Delete</button></td>
     </tr>`;}).join('');
 
   document.querySelector('#tbl-sig tbody').innerHTML=AD.sigs.map(s=>`<tr>
-    <td><strong>${s.name}</strong></td><td>${s.title}</td>
+    <td><strong>${escHtml(s.name)}</strong></td><td>${escHtml(s.title)}</td>
     <td><span class="pill ${s.active?'pill-green':'pill-gray'}">${s.active?'Active':'Inactive'}</span></td>
-    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('signer','${s.id}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('signer','${s.id}')">Delete</button></td>
+    <td style="text-align:right;white-space:nowrap"><button class="btn-sm btn-edit" onclick="openModal('signer','${escHtml(s.id)}')">Edit</button> <button class="btn-sm btn-danger" onclick="delRec('signer','${escHtml(s.id)}')">Delete</button></td>
   </tr>`).join('');
 }
 
@@ -1117,35 +1114,35 @@ function fillSignerDrop(){
   const sel=document.getElementById('cbre-signer');
   const cur=sel.value;
   sel.innerHTML='<option value="">-- Select signer --</option>'+
-    AD.sigs.filter(s=>s.active).map(s=>`<option value="${s.id}">${s.name} - ${s.title}</option>`).join('');
+    AD.sigs.filter(s=>s.active).map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} - ${escHtml(s.title)}</option>`).join('');
   if(cur) sel.value=cur;
 }
 
 // Modal
 const FORMS = {
   location: d=>`
-    <div class="mg-b"><label class="form-label">Name</label><input class="form-input" id="mf0" value="${d?.name||''}"></div>
-    <div class="mg-b"><label class="form-label">Technicians</label><input class="form-input" type="number" id="mf1" value="${d?.num_technicians||1}" min="1"></div>
+    <div class="mg-b"><label class="form-label">Name</label><input class="form-input" id="mf0" value="${escHtml(d?.name||'')}"></div>
+    <div class="mg-b"><label class="form-label">Technicians</label><input class="form-input" type="number" id="mf1" value="${escHtml(d?.num_technicians||1)}" min="1"></div>
     <div class="mg-b"><label class="form-label">Customer</label><select class="form-select" id="mf2"><option value="HHC" ${d?.customer_type==='HHC'?'selected':''}>HHC</option><option value="CBRE" ${d?.customer_type==='CBRE'?'selected':''}>CBRE</option></select></div>
     <div><label class="form-label">Status</label><select class="form-select" id="mf3"><option value="true" ${d?.active!==false?'selected':''}>Active</option><option value="false" ${d?.active===false?'selected':''}>Inactive</option></select></div>`,
   billto: d=>`
-    <div class="mg-b"><label class="form-label">Company Name</label><input class="form-input" id="mf0" value="${d?.company_name||''}"></div>
-    <div class="mg-b"><label class="form-label">Customer ID <span style="font-weight:400;font-size:10px;color:var(--gray-500)">(prefix from Sage, e.g. HHCNY or CBRE)</span></label><input class="form-input" id="mf1" value="${d?.customer_id||''}" placeholder="e.g. HHCNY or CBRE"></div>
-    <div class="mg-b"><label class="form-label">Address Line 1</label><input class="form-input" id="mf2" value="${d?.address_line1||''}"></div>
-    <div class="mg-b"><label class="form-label">Address Line 2</label><input class="form-input" id="mf3" value="${d?.address_line2||''}"></div>
-    <div class="mg-b"><label class="form-label">Address Line 3</label><input class="form-input" id="mf4" value="${d?.address_line3||''}"></div>
-    <div class="mg-b"><label class="form-label">City, State ZIP</label><input class="form-input" id="mf5" value="${d?.city_state_zip||''}"></div>
+    <div class="mg-b"><label class="form-label">Company Name</label><input class="form-input" id="mf0" value="${escHtml(d?.company_name||'')}"></div>
+    <div class="mg-b"><label class="form-label">Customer ID <span style="font-weight:400;font-size:10px;color:var(--gray-500)">(prefix from Sage, e.g. HHCNY or CBRE)</span></label><input class="form-input" id="mf1" value="${escHtml(d?.customer_id||'')}" placeholder="e.g. HHCNY or CBRE"></div>
+    <div class="mg-b"><label class="form-label">Address Line 1</label><input class="form-input" id="mf2" value="${escHtml(d?.address_line1||'')}"></div>
+    <div class="mg-b"><label class="form-label">Address Line 2</label><input class="form-input" id="mf3" value="${escHtml(d?.address_line2||'')}"></div>
+    <div class="mg-b"><label class="form-label">Address Line 3</label><input class="form-input" id="mf4" value="${escHtml(d?.address_line3||'')}"></div>
+    <div class="mg-b"><label class="form-label">City, State ZIP</label><input class="form-input" id="mf5" value="${escHtml(d?.city_state_zip||'')}"></div>
     <div class="mg-b"><label class="form-label">Customer Type</label><select class="form-select" id="mf6"><option value="HHC" ${d?.customer_type==='HHC'?'selected':''}>HHC</option><option value="CBRE" ${d?.customer_type==='CBRE'?'selected':''}>CBRE</option><option value="ALL" ${d?.customer_type==='ALL'?'selected':''}>ALL</option></select></div>
     <div><label class="form-label">Status</label><select class="form-select" id="mf7"><option value="true" ${d?.active!==false?'selected':''}>Active</option><option value="false">Inactive</option></select></div>`,
   po: d=>`
-    <div class="mg-b"><label class="form-label">Bill To</label><select class="form-select" id="mf0">${AD.bts.map(b=>`<option value="${b.id}" ${d?.bill_to_id===b.id?'selected':''}>${b.company_name}</option>`).join('')}</select></div>
-    <div class="mg-b"><label class="form-label">PO Number</label><input class="form-input" id="mf1" value="${d?.po_number||''}"></div>
-    <div class="mg-b"><label class="form-label">Effective Date</label><input class="form-input" type="date" id="mf2" value="${d?.effective_date||new Date().toISOString().slice(0,10)}"></div>
+    <div class="mg-b"><label class="form-label">Bill To</label><select class="form-select" id="mf0">${AD.bts.map(b=>`<option value="${escHtml(b.id)}" ${d?.bill_to_id===b.id?'selected':''}>${escHtml(b.company_name)}</option>`).join('')}</select></div>
+    <div class="mg-b"><label class="form-label">PO Number</label><input class="form-input" id="mf1" value="${escHtml(d?.po_number||'')}"></div>
+    <div class="mg-b"><label class="form-label">Effective Date</label><input class="form-input" type="date" id="mf2" value="${escHtml(d?.effective_date||new Date().toISOString().slice(0,10))}"></div>
     <div class="mg-b"><label class="form-label">Status</label><select class="form-select" id="mf3"><option value="true" ${d?.is_current!==false?'selected':''}>Current</option><option value="false" ${d?.is_current===false?'selected':''}>Historical</option></select></div>
-    <div><label class="form-label">Notes</label><input class="form-input" id="mf4" value="${d?.notes||''}"></div>`,
+    <div><label class="form-label">Notes</label><input class="form-input" id="mf4" value="${escHtml(d?.notes||'')}"></div>`,
   signer: d=>`
-    <div class="mg-b"><label class="form-label">Name</label><input class="form-input" id="mf0" value="${d?.name||''}"></div>
-    <div class="mg-b"><label class="form-label">Title</label><input class="form-input" id="mf1" value="${d?.title||''}"></div>
+    <div class="mg-b"><label class="form-label">Name</label><input class="form-input" id="mf0" value="${escHtml(d?.name||'')}"></div>
+    <div class="mg-b"><label class="form-label">Title</label><input class="form-input" id="mf1" value="${escHtml(d?.title||'')}"></div>
     <div><label class="form-label">Status</label><select class="form-select" id="mf2"><option value="true" ${d?.active!==false?'selected':''}>Active</option><option value="false">Inactive</option></select></div>`,
 };
 
