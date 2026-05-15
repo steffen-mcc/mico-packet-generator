@@ -602,7 +602,7 @@ async function parseSage(file) {
     return false;
   })||null;
   const custType=bt?.customer_type||(cUp.startsWith('HHC')||up.includes('NYC HEALTH')?'HHC':up.includes('CBRE')?'CBRE':null);
-  const loc=AD.locs.filter(l=>l.active&&(!custType||l.customer_type===custType)).find(l=>up.includes(l.name.toUpperCase()))||null;
+  const loc=AD.locs.filter(l=>l.active).find(l=>up.includes(l.name.toUpperCase()))||null;
   const po=bt?AD.pos.filter(p=>p.bill_to_id===bt.id&&p.is_current)[0]:null;
   return{invNo,date,custId,amt,loc,bt,po:po?.po_number||'',tp:date?timePer(date):'',long:date?fmtLong(date):'',myr:date?fmtMonYr(date):''};
 }
